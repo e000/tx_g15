@@ -78,12 +78,14 @@ class G15TextScreen(G15Screen):
         self._draw = ImageDraw.Draw(self._img)
         self._text = FixedList(5)
 
-    def clear(self):
+    def clear(self, clear_text = True):
         """
             Draws a blank rectangle over the canvas and clears the text buffer.
         """
         self._draw.rectangle((0, 0, MAX_X, MAX_Y), fill = 0)
-        self._text.clear()
+
+        if clear_text:
+            self._text.clear()
 
     def appendLine(self, text, center = False):
         """
@@ -106,20 +108,25 @@ class G15TextScreen(G15Screen):
         for line in textwrap.wrap(text, MAX_CHARS_PER_LINE):
             self.appendLine(line, center)
 
-    def display(self, render_text = True):
+    def display(self, clear_screen = True, render_text = True, send_buf = True):
         """
             Converts the Image into something that we can send to g15daemon, then sends it.
         """
+        if not self._protocol or getattr(self._protocol, 'activeScreen', None) not in (self, None):
+            return
+
+        if clear_screen:
+            self._draw.rectangle((0, 0, MAX_X, MAX_Y), fill = 0)
 
         if render_text:
-            self._draw.rectangle((0, 0, MAX_X, MAX_Y), fill = 0)
             y_pos = 0
             for line in self._text:
                 self._draw.text((0, y_pos), line, fill = 1)
                 y_pos += 8
 
-        self._buf = array('B', self._img.getdata())
-        super(G15TextScreen, self).display()
+        if send_buf:
+            self._buf = array('B', self._img.getdata())
+            super(G15TextScreen, self).display()
 
     @contextmanager
     def context(self, *a, **kw):
