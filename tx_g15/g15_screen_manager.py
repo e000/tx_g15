@@ -73,7 +73,7 @@ class ScreenManager(G15Protocol):
             s.init()
             self.screens.append(s)
 
-        self.pauseAndSwitchTo(self.screens[0])
+        self.pauseAndSwitchTo(self.screens[self.index])
 
     def _hookEvents(self):
         e = self.event
