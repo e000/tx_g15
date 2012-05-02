@@ -1,13 +1,22 @@
-from twisted.internet import reactor
-from .g15_protocol import G15Protocol
+from .g15_protocol import G15Protocol, G15Event
 from .g15_screen import G15TextScreen
-from .g15_screen_mixins import InterruptableScreenMixin
+from .g15_screen_mixins import InterruptableScreenMixin, KeyHookMixin
 from .util.RepeatedButtonPress import RepeatedButtonPress
 
-class SwitcherScreen(G15TextScreen, InterruptableScreenMixin):
+class SwitcherScreen(G15TextScreen, InterruptableScreenMixin, KeyHookMixin):
     """
         The window switcher screen. It also holds the splash screen and about page.
     """
+    def __init__(self, parent = None):
+        G15TextScreen.__init__(self, parent)
+        self.hookEvent(G15Event.BUTTON_THREE_UP, self.showAboutScreen)
+
+    def showAboutScreen(self, e):
+        with self.context():
+            self.clear()
+            self.appendLine("About screen goes here.")
+        self._protocol.transitionToActiveScreen()
+
     def showWelcomeScreen(self):
         with self.context():
             self.appendLine('')
@@ -44,6 +53,8 @@ class ScreenManager(G15Protocol):
         self.screens = screens or []
         self.index = 0
 
+        self._loadScreens()
+
     def sendScreen(self, screen):
         if screen is not self.activeScreen or not self.helloReceived:
             return
@@ -58,6 +69,7 @@ class ScreenManager(G15Protocol):
             print "Calling", f
             f(*a, **kw)
 
+        from twisted.internet import reactor # we have to import reactor here to avoid importing it at startup.
         self.transitionDelay = reactor.callLater(delay, callback)
 
     def addScreen(self, screenClass):
@@ -70,10 +82,9 @@ class ScreenManager(G15Protocol):
         self.screens[:] = []
         for screen in screens:
             s = screen(self)
-            s.init()
+            if hasattr(screen, 'init'):
+                s.init()
             self.screens.append(s)
-
-        self.pauseAndSwitchTo(self.screens[self.index])
 
     def _hookEvents(self):
         e = self.event
@@ -82,9 +93,11 @@ class ScreenManager(G15Protocol):
 
     def connectionInitialized(self):
         self.switcherScreen.showWelcomeScreen()
-        self._transitionTo(2, self._loadScreens)
+        self._transitionTo(2, lambda: self.pauseAndSwitchTo(self.screens[self.index]))
 
     def pauseAndSwitchTo(self, screen):
+        if screen is self.activeScreen:
+            return
         _as = self.activeScreen
         if hasattr(_as, 'pause'):
             _as.pause()
@@ -94,17 +107,25 @@ class ScreenManager(G15Protocol):
         else:
             screen.display()
 
+    def transitionToActiveScreen(self, delay = 2):
+        self._transitionTo(delay, self.pauseAndSwitchTo, self.screens[self.index])
+
     def switchNextScreen(self, e):
-        self.index = (self.index + 1) % len(self.screens)
-        self.pauseAndSwitchTo(self.switcherScreen)
+        if self.activeScreen is not self.switcherScreen:
+            self.pauseAndSwitchTo(self.switcherScreen)
+        else:
+            self.index = (self.index + 1) % len(self.screens)
         self.switcherScreen.showSwitcherScreen(self.index, self.screens[self.index])
-        self._transitionTo(2, self.pauseAndSwitchTo, self.screens[self.index])
+        self.transitionToActiveScreen()
 
     def switchPrevScreen(self, e):
-        self.index -= 1
-        if self.index < 0:
-            self.index = len(self.screens) - 1
-        self.pauseAndSwitchTo(self.switcherScreen)
+        if self.activeScreen is not self.switcherScreen:
+            self.pauseAndSwitchTo(self.switcherScreen)
+        else:
+            self.index -= 1
+            if self.index < 0:
+                self.index = len(self.screens) - 1
         self.switcherScreen.showSwitcherScreen(self.index, self.screens[self.index])
-        self._transitionTo(2, self.pauseAndSwitchTo, self.screens[self.index])
+        self.transitionToActiveScreen()
+
 
