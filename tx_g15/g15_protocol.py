@@ -1,4 +1,3 @@
-from twisted.internet import reactor
 from twisted.internet.protocol import Protocol
 from .g15_screen import G15Screen
 from .g15_event import G15Event
@@ -43,6 +42,7 @@ class G15Protocol(Protocol):
                 else:
                     self.helloReceived = True
                     if self.eventPath:
+                        from twisted.internet import reactor
                         reactor.spawnProcess(self.event, 'sudo', ['sudo', 'cat', self.eventPath])
                     else:
                         print "No event path specified, we wont be able to see events."
