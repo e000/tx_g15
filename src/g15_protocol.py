@@ -24,7 +24,7 @@ class G15Protocol(Protocol):
             this is just twisted saying that a socket connection has been made,
             not that it's successfully gotten G15_HELLO.
         """
-        pass
+        self.transport.setTcpNoDelay(True)
 
     def connectionInitialized(self):
         """
