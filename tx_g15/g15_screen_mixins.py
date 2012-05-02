@@ -32,7 +32,7 @@ class LoopingCallMixin(InterruptableScreenMixin):
     def __init__(self, updateFrequency = 1):
         from twisted.internet import task
         self._loopingCall = task.LoopingCall(self.updateScreen)
-        self._loopingCall.updateFrequency = 1
+        self._loopingCall.updateFrequency = updateFrequency
 
     def updateScreen(self):
         pass
@@ -46,6 +46,10 @@ class LoopingCallMixin(InterruptableScreenMixin):
             self._loopingCall.start(self._loopingCall.updateFrequency)
 
 class KeyHookMixin():
-    # TODO: Write me!
+    def hookEvent(self, event, callback):
+        def actual_callback(e):
+            if self._protocol.activeScreen is self:
+                callback(e)
+        self._protocol.event.hookEvent(event, actual_callback)
 
     pass
