@@ -1,30 +1,8 @@
 from twisted.internet import reactor
 from src.g15_protocol import G15Protocol
 from src.g15_screen import G15TextScreen
-
-class InterruptableScreenMixin:
-    paused = True
-    def pause(self):
-        if not self.paused:
-            self.paused = True
-            self.onPause()
-
-    def resume(self):
-        if self.paused:
-            self.paused = False
-            self.onResume()
-            self.display()
-        self.paused = False
-        pass
-
-    def init(self):
-        pass
-
-    def onResume(self):
-        pass
-
-    def onPause(self):
-        pass
+from src.g15_screen_mixins import InterruptableScreenMixin
+from src.util.RepeatedButtonPress import RepeatedButtonPress
 
 class SwitcherScreen(G15TextScreen, InterruptableScreenMixin):
     """
@@ -99,8 +77,8 @@ class ScreenManager(G15Protocol):
 
     def _hookEvents(self):
         e = self.event
-        e.hookEvent(e.BUTTON_ONE_UP, self.switchPrevScreen)
-        e.hookEvent(e.BUTTON_TWO_UP, self.switchNextScreen)
+        RepeatedButtonPress(e.BUTTON_ONE, self.switchPrevScreen).connect(e)
+        RepeatedButtonPress(e.BUTTON_TWO, self.switchNextScreen).connect(e)
 
     def connectionInitialized(self):
         self.switcherScreen.showWelcomeScreen()
@@ -113,15 +91,19 @@ class ScreenManager(G15Protocol):
         self.activeScreen = screen
         if hasattr(screen, 'resume'):
             screen.resume()
+        else:
+            screen.display()
 
-    def switchPrevScreen(self, e):
+    def switchNextScreen(self, e):
         self.index = (self.index + 1) % len(self.screens)
         self.pauseAndSwitchTo(self.switcherScreen)
         self.switcherScreen.showSwitcherScreen(self.index, self.screens[self.index])
         self._transitionTo(2, self.pauseAndSwitchTo, self.screens[self.index])
 
-    def switchNextScreen(self, e):
-        self.index = (self.index - 1) % len(self.screens)
+    def switchPrevScreen(self, e):
+        self.index -= 1
+        if self.index < 0:
+            self.index = len(self.screens) - 1
         self.pauseAndSwitchTo(self.switcherScreen)
         self.switcherScreen.showSwitcherScreen(self.index, self.screens[self.index])
         self._transitionTo(2, self.pauseAndSwitchTo, self.screens[self.index])
