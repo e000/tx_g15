@@ -11,11 +11,14 @@ class G15Protocol(Protocol):
         Twisted protocol for talking to g15daemon via sockets.
     """
 
-    def __init__(self, eventPath = None):
+    def __init__(self, eventPath = None, outHooks = None):
         self.helloReceived = False
         self._buffer = ''
         self.event = G15Event()
         self.eventPath = eventPath
+        self.screenOutHooks = outHooks or []
+        outHooks[0].im_self.e = self
+        print dir(outHooks[0])
 
     def connectionMade(self):
         """
@@ -63,4 +66,5 @@ class G15Protocol(Protocol):
             raise RuntimeError("We aren't connected yet.")
         print "sending screen %r" % screen
         self.transport.write(str(screen))
-
+        for hook in self.screenOutHooks:
+            hook(screen)

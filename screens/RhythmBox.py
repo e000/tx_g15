@@ -1,14 +1,16 @@
 from __future__ import division
 from itertools import cycle
-from twisted.internet import glib2reactor
-glib2reactor.install()
 
 from tx_g15 import LoopingCallMixin
+from tx_g15.g15_screen import G15TextScreen
+
+from twisted.internet import glib2reactor
+glib2reactor.install()
 import dbus
 import dbus.mainloop.glib
 dbus.mainloop.glib.DBusGMainLoop (set_as_default = True)
 
-from tx_g15.g15_screen import G15TextScreen
+
 
 class RhythmBox(G15TextScreen, LoopingCallMixin):
     def __init__(self, *a, **kw):

@@ -44,8 +44,8 @@ class ScreenManager(G15Protocol):
     authorName = "None"
     activeScreen = None
 
-    def __init__(self, eventPath = None, screens = None):
-        G15Protocol.__init__(self, eventPath = eventPath)
+    def __init__(self, eventPath = None, screens = None, outHooks = None):
+        G15Protocol.__init__(self, eventPath = eventPath, outHooks = outHooks)
         self.switcherScreen = SwitcherScreen(self, )
         self.pauseAndSwitchTo(self.switcherScreen)
         self.transitionDelay = None
