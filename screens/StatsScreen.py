@@ -3,7 +3,7 @@ import os
 import socket
 import psutil
 from src.g15_screen import G15TextScreen
-from src.g15_screen_manager import LoopingCallMixin
+from src.g15_screen_mixins import LoopingCallMixin
 
 class StatsScreen(G15TextScreen, LoopingCallMixin):
     def __init__(self, *a, **kw):
