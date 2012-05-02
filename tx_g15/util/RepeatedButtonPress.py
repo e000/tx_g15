@@ -10,7 +10,7 @@ class RepeatedButtonPress:
         self._delay = delay
         self._frequency = frequency
         self._timeoutDelay = None
-        self._loopingCall = task.LoopingCall(self._callback)
+        self._loopingCall = task.LoopingCall(self._callback, self)
         if not reactor:
             from twisted.internet import reactor
         self.reactor = reactor
@@ -23,7 +23,7 @@ class RepeatedButtonPress:
         if self._timeoutDelay and self._timeoutDelay.active():
             self._timeoutDelay.cancel()
 
-        self._callback()
+        self._callback(self)
         self._timeoutDelay = self.reactor.callLater(self._delay, self._startLoopingCall)
 
     def _on_KeyUp(self, event):
