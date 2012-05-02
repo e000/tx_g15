@@ -1,8 +1,8 @@
 from twisted.internet import reactor
-from src.g15_protocol import G15Protocol
-from src.g15_screen import G15TextScreen
-from src.g15_screen_mixins import InterruptableScreenMixin
-from src.util.RepeatedButtonPress import RepeatedButtonPress
+from .g15_protocol import G15Protocol
+from .g15_screen import G15TextScreen
+from .g15_screen_mixins import InterruptableScreenMixin
+from .util.RepeatedButtonPress import RepeatedButtonPress
 
 class SwitcherScreen(G15TextScreen, InterruptableScreenMixin):
     """

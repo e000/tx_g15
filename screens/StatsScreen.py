@@ -2,8 +2,8 @@ import datetime
 import os
 import socket
 import psutil
-from src.g15_screen import G15TextScreen
-from src.g15_screen_mixins import LoopingCallMixin
+from tx_g15.g15_screen import G15TextScreen
+from tx_g15.g15_screen_mixins import LoopingCallMixin
 
 class StatsScreen(G15TextScreen, LoopingCallMixin):
     def __init__(self, *a, **kw):

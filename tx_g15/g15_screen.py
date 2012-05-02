@@ -2,7 +2,7 @@ from array import array
 import Image, ImageDraw
 from contextlib import contextmanager
 import textwrap
-from src.util.FixedList import FixedList
+from .util.FixedList import FixedList
 
 MAX_CHARS_PER_LINE = 27
 

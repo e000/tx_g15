@@ -2,8 +2,8 @@ import datetime
 import os
 import socket
 import psutil
-from src.g15_img_screen import G15PicScreen, G15GifScreen
-from src.g15_screen_mixins import LoopingCallMixin
+from tx_g15.g15_img_screen import G15PicScreen, G15GifScreen
+from tx_g15.g15_screen_mixins import LoopingCallMixin
 
 class ImageTest(G15PicScreen):
     def __init__(self, *a, **kw):

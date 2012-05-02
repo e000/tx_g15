@@ -1,6 +1,6 @@
 from twisted.internet.protocol import ClientCreator
 from screens import StatsScreen,  ImageTest
-from src.g15_screen_manager import ScreenManager
+from tx_g15.g15_screen_manager import ScreenManager
 from twisted.internet import reactor
 
 protocol = ScreenManager
