@@ -7,11 +7,8 @@ from tx_g15 import LoopingCallMixin
 from tx_g15.g15_screen import G15TextScreen
 
 import dbus
+from tx_g15.util.tx_dbus import deferFromDbus
 
-def deferFromDbus(f, *a):
-    d = Deferred()
-    f.call_async(*a, reply_handler = d.callback, error_handler = d.errback)
-    return d
 
 class Spotify(G15TextScreen, LoopingCallMixin):
     def __init__(self, *a, **kw):
