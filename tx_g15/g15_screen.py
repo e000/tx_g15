@@ -66,7 +66,37 @@ class G15Screen(object):
         if self._protocol:
             self._protocol.sendScreen(self)
 
-class G15TextScreen(G15Screen):
+class G15CanvasScreen(G15Screen):
+    """
+        A screen that supports canvas options via ImageDraw.
+    """
+
+    def __init__(self, parent = None):
+        self._protocol = parent
+        self._img = Image.new('P', (MAX_X, MAX_Y))
+        self._draw = ImageDraw.Draw(self._img)
+
+
+    def display(self):
+        self._buf = array('B', self._img.getdata())
+        super(G15CanvasScreen, self).display()
+
+    def clearScreen(self):
+        self._draw.rectangle((0, 0, MAX_X, MAX_Y), fill = 0)
+
+    bitmap = lambda self, *a, **kw: self._draw.bitmap(*a, **kw)
+    line = lambda self, *a, **kw: self._draw.line(*a, **kw)
+    chord = lambda self, *a, **kw: self._draw.chord(*a, **kw)
+    ellipse = lambda self, *a, **kw: self._draw.ellipse(*a, **kw)
+    pieslice = lambda self, *a, **kw: self._draw.pieslice(*a, **kw)
+    point = lambda self, *a, **kw: self._draw.point(*a, **kw)
+    polygon = lambda self, *a, **kw: self._draw.polygon(*a, **kw)
+    rectangle = lambda self, *a, **kw: self._draw.rectangle(*a, **kw)
+    text = lambda self, *a, **kw: self._draw.text(*a, **kw)
+
+
+
+class G15TextScreen(G15CanvasScreen):
     """
         A Screen that has methods to allow for easy writing of text to the screen.
         Supports 5 lines of text.
@@ -74,8 +104,6 @@ class G15TextScreen(G15Screen):
 
     def __init__(self, parent=None):
         super(G15TextScreen, self).__init__(parent)
-        self._img = Image.new('P', (MAX_X, MAX_Y))
-        self._draw = ImageDraw.Draw(self._img)
         self._text = FixedList(5)
 
     def clear(self, clear_text = True):
@@ -126,7 +154,7 @@ class G15TextScreen(G15Screen):
 
         if send_buf:
             self._buf = array('B', self._img.getdata())
-            super(G15TextScreen, self).display()
+            G15Screen.display(self)
 
     @contextmanager
     def context(self, *a, **kw):
