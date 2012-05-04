@@ -1,4 +1,6 @@
+import htmlentitydefs
 import re
+import xml
 
 _squeeze_re = re.compile(r"[\x00-\x20]+").sub
 def squeeze(value):
@@ -91,3 +93,55 @@ def truncate(s,min_pos=0,max_pos=75,ellipsis=True):
 
         if length > max_pos:
             return s[0:end] + suffix
+
+def _build_unicode_map():
+    unicode_map = {}
+    for name, value in htmlentitydefs.name2codepoint.iteritems():
+        unicode_map[name] = unichr(value)
+    return unicode_map
+
+_HTML_UNICODE_MAP = _build_unicode_map()
+
+def utf8(value):
+    if isinstance(value, unicode):
+        return value.encode("utf-8")
+    assert isinstance(value, str)
+    return value
+
+
+def _unicode(value):
+    if isinstance(value, str):
+        return value.decode("utf-8")
+    assert isinstance(value, unicode)
+    return value
+
+
+def _convert_entity(m):
+    if m.group(1) == "#":
+        try:
+            return unichr(int(m.group(2)))
+        except ValueError:
+            return "&#%s;" % m.group(2)
+    try:
+        return _HTML_UNICODE_MAP[m.group(2)]
+    except KeyError:
+        return "&%s;" % m.group(2)
+
+def xhtml_escape(value):
+    """
+        Escapes a string so it is valid within XML or XHTML.
+
+        >>> xhtml_escape("Hello Bill & Ted :>")
+        'Hello Bill &amp; Ted :&gt;'
+    """
+    return utf8(xml.sax.saxutils.escape(value))
+
+_xhtml_unescape_re = re.compile(r"&(#?)(\w+?);").sub
+def xhtml_unescape(value):
+    """
+        Un-escapes an XML-escaped string.
+
+        >>> xhtml_unescape('Hello Bill &amp; Ted :&gt;')
+        u'Hello Bill & Ted :>'
+    """
+    return _xhtml_unescape_re(_convert_entity, _unicode(value))
