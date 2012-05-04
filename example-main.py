@@ -11,8 +11,8 @@ from tx_g15 import ScreenManager
 from twisted.internet import reactor
 
 protocol = ScreenManager
-#screens = [RhythmBox.RhythmBox, ImageTest.GifTest, StatsScreen.StatsScreen, ImageTest.ImageTest]
-screens = [Spotify.Spotify]
+screens = [RhythmBox.RhythmBox, ImageTest.GifTest, StatsScreen.StatsScreen, ImageTest.ImageTest]
+#screens = [Spotify.Spotify]
 
 from tx_g15.expiremental.canvas_renderer import RenderOutStream, WebSocketFactory
 

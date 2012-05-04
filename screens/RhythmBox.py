@@ -10,11 +10,14 @@ from tx_g15.util.tx_dbus import deferFromDbus
 
 
 class RhythmBox(G15TextScreen, LoopingCallMixin):
+    scrollTitle = ''
+    lineLen = 0
+    curSec = 0
+    songDuration = 0
+
     def __init__(self, *a, **kw):
         G15TextScreen.__init__(self, *a, **kw)
         LoopingCallMixin.__init__(self, 0.2)
-
-        self.scroll_title = ''
 
         bus = self.bus = dbus.SessionBus()
         self.player = dbus.Interface(bus.get_object("org.gnome.Rhythmbox", "/org/gnome/Rhythmbox/Player"),
@@ -36,20 +39,20 @@ class RhythmBox(G15TextScreen, LoopingCallMixin):
         self.getStatus()
 
     def updateScrollTitle(self, scroll_title):
-        self.scroll_title = scroll_title
-        self.lineLen = len(self.scroll_title)
+        self.scrollTitle = scroll_title
+        self.lineLen = len(self.scrollTitle)
         if self.lineLen <= 27:
-            self._text[1] = self.scroll_title.center(27)
+            self._text[1] = self.scrollTitle.center(27)
         else:
             self.gen = cycle([0] * 15 + range(self.lineLen - 27) + [self.lineLen - 27] * 15)
-            self._text[1] = self.scroll_title[:27]
+            self._text[1] = self.scrollTitle[:27]
 
     def updateScreen(self):
         if self.lineLen > 27:
             i = self.gen.next()
-            self._text[1] = self.scroll_title[i:i+27]
+            self._text[1] = self.scrollTitle[i:i+27]
             self.clear(clear_text = False)
-            self.drawBar(self.cur_sec, self.songDuration)
+            self.drawBar(self.curSec, self.songDuration)
             self.display(clear_screen = False)
 
     @inlineCallbacks
@@ -57,7 +60,7 @@ class RhythmBox(G15TextScreen, LoopingCallMixin):
         if not uri:
             self.noSong()
         else:
-            song = yield deferFromDbus(self.shell.getSongProperties)
+            song = yield deferFromDbus(self.shell.getSongProperties, uri)
             title, artist, self.songDuration = song['title'], song['artist'], song['duration']
             self._text[0] = 'Now Playing:'.center(27)
 
@@ -78,11 +81,11 @@ class RhythmBox(G15TextScreen, LoopingCallMixin):
 
     def elapsedChanged(self, sec):
         with self.context(clear_screen = False):
-            self.cur_sec = sec
+            self.curSec = sec
             self._text[2] = ('%i:%02i/%i:%02i' % (sec//60, sec % 60, self.songDuration / 60, self.songDuration % 60)).center(27)
 
             self.clear(clear_text = False)
-            self.drawBar(self.cur_sec, self.songDuration)
+            self.drawBar(self.curSec, self.songDuration)
 
     def drawBar(self, sec, duration):
         d = self._draw.rectangle
