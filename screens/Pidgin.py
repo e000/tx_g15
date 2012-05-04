@@ -2,7 +2,7 @@ import re
 import dbus
 from twisted.internet.defer import inlineCallbacks
 from tx_g15.g15_screen import G15TextScreen
-from tx_g15.util.misc import squeeze, truncate
+from tx_g15.util.misc import squeeze, truncate, xhtml_unescape
 from tx_g15.util.tx_dbus import deferFromDbus
 
 class Pidgin(G15TextScreen):
@@ -38,5 +38,5 @@ class Pidgin(G15TextScreen):
 
     def receivedImMessage(self, _, who, message, time, __):
         with self.context():
-            self.appendText(truncate("%s: %s" % (who, squeeze(re.sub(r'<[^>]*?>', '', message))), min_pos = 27, max_pos = 27 * 2))
+            self.appendText(truncate("%s: %s" % (who, squeeze(xhtml_unescape(re.sub(r'<[^>]*?>', '', message)))), min_pos = 27, max_pos = 27 * 2))
 
