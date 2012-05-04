@@ -1,11 +1,12 @@
 from __future__ import division
 from itertools import cycle
+from twisted.internet.defer import inlineCallbacks
 
 from tx_g15 import LoopingCallMixin
 from tx_g15.g15_screen import G15TextScreen
 
 import dbus
-
+from tx_g15.util.tx_dbus import deferFromDbus
 
 
 class RhythmBox(G15TextScreen, LoopingCallMixin):
@@ -51,27 +52,29 @@ class RhythmBox(G15TextScreen, LoopingCallMixin):
             self.drawBar(self.cur_sec, self.songDuration)
             self.display(clear_screen = False)
 
+    @inlineCallbacks
     def playingUriChanged(self, uri):
         if not uri:
-            return self.noSong()
-        song = self.shell.getSongProperties(uri)
-        title, artist, self.songDuration = song['title'], song['artist'], song['duration']
-        self._text[0] = 'Now Playing:'.center(27)
-
-        if title and artist:
-            scroll_title = '%s - %s' % (artist, title)
-        elif title:
-            scroll_title = '%s' % title
-        elif artist:
-            scroll_title = '%s' % artist
+            self.noSong()
         else:
-            scroll_title = 'Unknown'
+            song = yield deferFromDbus(self.shell.getSongProperties)
+            title, artist, self.songDuration = song['title'], song['artist'], song['duration']
+            self._text[0] = 'Now Playing:'.center(27)
 
-        self.updateScrollTitle(scroll_title)
-        self._text[2] = ('0:00/%i:%02i' % (self.songDuration / 60, self.songDuration % 60)).center(27)
-        with self.context(clear_screen = False):
-            self.clear(clear_text= False)
-            self.drawBar(0, self.songDuration)
+            if title and artist:
+                scroll_title = '%s - %s' % (artist, title)
+            elif title:
+                scroll_title = '%s' % title
+            elif artist:
+                scroll_title = '%s' % artist
+            else:
+                scroll_title = 'Unknown'
+
+            self.updateScrollTitle(scroll_title)
+            self._text[2] = ('0:00/%i:%02i' % (self.songDuration / 60, self.songDuration % 60)).center(27)
+            with self.context(clear_screen = False):
+                self.clear(clear_text= False)
+                self.drawBar(0, self.songDuration)
 
     def elapsedChanged(self, sec):
         with self.context(clear_screen = False):
@@ -94,9 +97,10 @@ class RhythmBox(G15TextScreen, LoopingCallMixin):
             self.clear(clear_text= False)
             self.drawBar(0, 0)
 
+    @inlineCallbacks
     def getStatus(self):
-        uri = self.player.getPlayingUri()
-        self.playingUriChanged(uri)
+        uri = yield deferFromDbus(self.player.getPlayingUri)
+        yield self.playingUriChanged(uri)
         if uri:
-            elapsed = self.player.getElapsed()
+            elapsed = yield deferFromDbus(self.player.getElapsed)
             self.elapsedChanged(elapsed)
