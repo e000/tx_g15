@@ -109,7 +109,7 @@ class RhythmBox(G15TextScreen, LoopingCallMixin):
         d = self._draw.rectangle
         d((5, 26, 155, 32), outline=1)
         if duration > 0 < sec:
-            d((6, 27, int(sec/(duration*150.0)) + 5, 31), fill=1)
+            d((6, 27, int(sec * 150.0 / duration) + 5, 31), fill=1)
 
     def noSong(self):
         """
