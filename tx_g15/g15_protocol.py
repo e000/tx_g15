@@ -17,6 +17,7 @@ class G15Protocol(Protocol):
         self.event = G15Event()
         self.eventPath = eventPath
         self.screenOutHooks = outHooks or []
+        self._lastFrameSent = ''
         outHooks[0].im_self.e = self
         print dir(outHooks[0])
 
@@ -64,7 +65,13 @@ class G15Protocol(Protocol):
         assert isinstance(screen, G15Screen)
         if not self.helloReceived:
             raise RuntimeError("We aren't connected yet.")
-        print "sending screen %r" % screen
-        self.transport.write(str(screen))
+        frame = str(screen)
+        if frame != self._lastFrameSent:
+            #print "sending screen %r" % screen
+            self.transport.write(frame)
+            self._lastFrameSent = frame
+        #else:
+            #print "discarding same frame."
+
         for hook in self.screenOutHooks:
             hook(screen)
