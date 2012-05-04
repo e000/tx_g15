@@ -4,14 +4,14 @@ import dbus
 import dbus.mainloop.glib
 dbus.mainloop.glib.DBusGMainLoop (set_as_default = True)
 
-from screens import RhythmBox, Spotify
+from screens import RhythmBox, Spotify, Pidgin
 from screens import StatsScreen,  ImageTest
 from twisted.internet.protocol import ClientCreator, ServerFactory
 from tx_g15 import ScreenManager
 from twisted.internet import reactor
 
 protocol = ScreenManager
-screens = [RhythmBox.RhythmBox, ImageTest.GifTest, StatsScreen.StatsScreen, ImageTest.ImageTest]
+screens = [Pidgin.Pidgin, RhythmBox.RhythmBox, ImageTest.GifTest, StatsScreen.StatsScreen, ImageTest.ImageTest]
 #screens = [Spotify.Spotify]
 
 from tx_g15.expiremental.canvas_renderer import RenderOutStream, WebSocketFactory

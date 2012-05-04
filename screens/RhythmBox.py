@@ -1,8 +1,7 @@
 from itertools import cycle
 from twisted.internet.defer import inlineCallbacks
 
-from tx_g15 import LoopingCallMixin
-from tx_g15.g15_screen import G15TextScreen
+from tx_g15 import LoopingCallMixin, G15TextScreen
 
 import dbus
 from tx_g15.util.tx_dbus import deferFromDbus
